@@ -1,12 +1,15 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import multer from "multer";
-import nextConnect from "next-connect"; // correto
+import nextConnect from "next-connect";
 import fs from "fs-extra";
 import path from "path";
 import Utils from "../src/utils/utils";
 import DriveController from "../src/controllers/DriveController";
 
-const upload = multer({ dest: "/tmp/" }); // use /tmp para Vercel
+// Leitura da variável de ambiente
+const allowedOrigin = process.env.CORS_ORIGIN;
+
+const upload = multer({ dest: "/tmp/" });
 
 const apiRoute = nextConnect<VercelRequest, VercelResponse>({
   onError(error, req, res) {
@@ -18,6 +21,33 @@ const apiRoute = nextConnect<VercelRequest, VercelResponse>({
   onNoMatch(req, res) {
     res.status(405).json({ success: false, message: "Método não permitido." });
   },
+});
+
+apiRoute.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (origin && origin !== process.env.CORS_ORIGIN) {
+    // Origem não autorizada: responder com erro
+    return res
+      .status(403)
+      .json({ success: false, message: "Origem não autorizada." });
+  }
+
+  // Se for a origem correta, permite e define os headers
+  if (origin && origin === process.env.CORS_ORIGIN) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+    return;
+  }
+
+  next();
 });
 
 const uploadFields = upload.fields([
