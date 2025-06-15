@@ -1,0 +1,36 @@
+{
+  "name": "my-plugin-wordpress",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx ts-node src/api/server.ts",
+    "start": "node dist/index.js",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "fs-extra": "^11.3.0",
+    "googleapis": "^150.0.1",
+    "multer": "^2.0.1",
+    "pdfkit": "^0.17.1"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.3",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/fs-extra": "^11.0.4",
+    "@types/multer": "^1.4.13",
+    "@types/node": "^24.0.1",
+    "@types/pdfkit": "^0.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
