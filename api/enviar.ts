@@ -1,15 +1,24 @@
-import express from "express";
+import { VercelRequest, VercelResponse } from "@vercel/node";
 import multer from "multer";
-import cors from "cors";
+import nextConnect from "next-connect"; // correto
 import fs from "fs-extra";
 import path from "path";
 import Utils from "../src/utils/utils";
 import DriveController from "../src/controllers/DriveController";
 
-const app = express();
-app.use(cors());
+const upload = multer({ dest: "/tmp/" }); // use /tmp para Vercel
 
-const upload = multer({ dest: "uploads/" });
+const apiRoute = nextConnect<VercelRequest, VercelResponse>({
+  onError(error, req, res) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Erro ao processar dados." });
+  },
+  onNoMatch(req, res) {
+    res.status(405).json({ success: false, message: "Método não permitido." });
+  },
+});
 
 const uploadFields = upload.fields([
   { name: "curriculum", maxCount: 1 },
@@ -17,14 +26,17 @@ const uploadFields = upload.fields([
   { name: "signature", maxCount: 1 },
 ]);
 
-app.post("/server", uploadFields, async (req, res) => {
+apiRoute.use(uploadFields);
+
+apiRoute.post(async (req: any, res) => {
   try {
-    const arquivos = req.files;
+    const arquivos = req.files as {
+      [fieldname: string]: Express.Multer.File[];
+    };
     const dados = req.body;
 
-    if (!dados) {
-      res.json({ error: "Não recebemos os dados corretamente" });
-    }
+    if (!dados)
+      return res.json({ error: "Não recebemos os dados corretamente" });
 
     for (const key in dados) {
       if (Object.prototype.hasOwnProperty.call(dados, key)) {
@@ -36,10 +48,7 @@ app.post("/server", uploadFields, async (req, res) => {
       }
     }
 
-    console.log("Arquivos recebidos:", arquivos);
-    console.log("Dados do formulário:", dados);
-
-    const tempFolder = "temp";
+    const tempFolder = "/tmp";
     await fs.ensureDir(tempFolder);
 
     const date = Utils.getToDay();
@@ -47,15 +56,9 @@ app.post("/server", uploadFields, async (req, res) => {
     const pdfPath = path.join(tempFolder, "dadosformulario.pdf");
     const zipPath = path.join(
       tempFolder,
-      `${dados?.nome ? dados.nome : ""}-${
-        dados?.sobrenome ? dados.sobrenome : ""
-      }-${date}.zip`
+      `${dados?.nome ?? ""}-${dados?.sobrenome ?? ""}-${date}.zip`
     );
 
-    if (!arquivos) {
-      res.status(400).json({ error: "Nenhum arquivo foi enviado." });
-      return;
-    }
     const arquivosArray = Object.values(arquivos).flat();
 
     if (dados.signature && typeof dados.signature === "string") {
@@ -73,9 +76,11 @@ app.post("/server", uploadFields, async (req, res) => {
 
     const driveLink = await DriveController.uploadToDrive(zipPath);
 
-    await fs.remove(tempFolder);
+    await fs.remove(pdfPath);
+    await fs.remove(zipPath);
     for (const file of arquivosArray) await fs.remove(file.path);
-    res.json({ success: true, link: driveLink });
+
+    res.status(200).json({ success: true, link: driveLink });
   } catch (err) {
     console.error(err);
     res
@@ -84,5 +89,4 @@ app.post("/server", uploadFields, async (req, res) => {
   }
 });
 
-// Exportando o app Express como uma função serverless
-export default app;
+export default apiRoute;

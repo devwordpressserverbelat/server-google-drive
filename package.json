@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx ts-node src/api/server.ts",
+    "dev": "npx ts-node src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc"
   },
@@ -20,6 +20,7 @@
     "fs-extra": "^11.3.0",
     "googleapis": "^150.0.1",
     "multer": "^2.0.1",
+    "next-connect": "^1.0.0",
     "pdfkit": "^0.17.1"
   },
   "devDependencies": {
@@ -30,6 +31,7 @@
     "@types/multer": "^1.4.13",
     "@types/node": "^24.0.1",
     "@types/pdfkit": "^0.14.0",
+    "@vercel/node": "^4.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
