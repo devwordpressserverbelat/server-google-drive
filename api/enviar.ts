@@ -26,20 +26,18 @@ const apiRoute = nextConnect<VercelRequest, VercelResponse>({
 apiRoute.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  if (origin && origin !== allowedOrigin) {
-    return res
-      .status(403)
-      .json({ success: false, message: "Origem não autorizada." });
+  if (!origin) {
+    return res.json({ error: "O cors do site não foi configurado" }).end();
   }
 
-  // Apenas se a origem for aceita, define os headers
   if (origin === allowedOrigin) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    // Se a origem é válida, continua para a rota
+    return next();
   }
-
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   // Importante: não envie resposta ao OPTIONS antes da verificação da origem
   if (req.method === "OPTIONS") {
