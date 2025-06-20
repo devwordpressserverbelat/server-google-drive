@@ -7,17 +7,21 @@ import api from "../src/middleware/apiRouter";
 
 const upload = multer({ dest: "/tmp/" });
 
+const apiEscola = api;
+
 const uploadFields = upload.fields([
-  { name: "curriculum", maxCount: 1 },
-  { name: "social_contract", maxCount: 1 },
-  { name: "signature", maxCount: 1 },
+  { name: "balanco_dre", maxCount: 3 },
+  { name: "balance_ano_corrente", maxCount: 1 },
+  { name: "relacao_mensal_faturamento_three_anos", maxCount: 1 },
+  { name: "valor_mensal_vendas_tres_anos", maxCount: 1 },
+  { name: "declaracao_irpf", maxCount: 1 },
+  { name: "previsao_fluxo_caixa", maxCount: 1 },
+  { name: "informacoes_mercado", maxCount: 1 },
 ]);
 
-const apiEnviar = api;
+apiEscola.use(uploadFields);
 
-apiEnviar.use(uploadFields);
-
-apiEnviar.post(async (req: any, res) => {
+apiEscola.post(async (req: any, res) => {
   try {
     const arquivos = req.files as {
       [fieldname: string]: Express.Multer.File[];
@@ -41,12 +45,8 @@ apiEnviar.post(async (req: any, res) => {
     await fs.ensureDir(tempFolder);
 
     const date = Utils.getToDay();
-
     const pdfPath = path.join(tempFolder, "dadosformulario.pdf");
-    const zipPath = path.join(
-      tempFolder,
-      `${dados?.nome ?? ""}-${dados?.sobrenome ?? ""}-${date}.zip`
-    );
+    const zipPath = path.join(tempFolder, `${dados?.email ?? ""}-${date}.zip`);
 
     const arquivosArray = Object.values(arquivos).flat();
 
@@ -78,4 +78,4 @@ apiEnviar.post(async (req: any, res) => {
   }
 });
 
-export default apiEnviar;
+export default apiEscola;
