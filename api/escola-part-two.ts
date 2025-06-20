@@ -9,9 +9,9 @@ const upload = multer({
 });
 
 const uploadFields = upload.fields([
+  { name: "balance_ano_corrente", maxCount: 1 },
+  { name: "relacao_mensal_faturamento_three_anos", maxCount: 1 },
   { name: "valor_mensal_vendas_tres_anos", maxCount: 1 },
-  { name: "declaracao_irpf", maxCount: 1 },
-  { name: "previsao_fluxo_caixa", maxCount: 1 },
 ]);
 
 const handler = api;
@@ -23,11 +23,13 @@ handler.post(async (req: any, res) => {
       [fieldname: string]: Express.Multer.File[];
     };
     const { email } = req.body;
+
     if (!email) return res.status(400).json({ error: "E-mail obrigatório" });
 
     const tempFolder = `/tmp/${email}`;
     await fs.ensureDir(tempFolder);
 
+    // Salvar somente os arquivos na pasta do e-mail
     for (const files of Object.values(arquivos)) {
       for (const file of files) {
         const dest = path.join(tempFolder, file.originalname);
