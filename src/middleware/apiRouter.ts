@@ -18,12 +18,12 @@ const api = nextConnect<VercelRequest, VercelResponse>({
 api.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  if (!origin) {
-    return res.json({ error: "O cors do site não foi configurado" }).end();
-  }
+  //   if (!origin) {
+  //     return res.json({ error: "O cors do site não foi configurado" }).end();
+  //   }
 
   if (origin === allowedOrigin) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
