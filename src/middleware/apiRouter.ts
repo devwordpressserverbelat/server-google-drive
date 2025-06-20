@@ -1,5 +1,13 @@
 import nextConnect from "next-connect";
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { json } from "body-parser";
+
+// ⚙️ Desativar o bodyParser padrão do Next.js e definir limite
+export const config = {
+  api: {
+    bodyParser: false, // Desativa o parser padrão
+  },
+};
 
 const allowedOrigin = process.env.CORS_ORIGIN;
 
@@ -15,23 +23,19 @@ const api = nextConnect<VercelRequest, VercelResponse>({
   },
 });
 
+// 🧠 Usa body-parser com limite maior (10mb)
+api.use(json({ limit: "20mb" }));
+
+// 🌐 Middleware CORS
 api.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  //   if (!origin) {
-  //     return res.json({ error: "O cors do site não foi configurado" }).end();
-  //   }
+  // Permitir todos os CORS (ou limitar com allowedOrigin, se quiser)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (origin === allowedOrigin) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    // Se a origem é válida, continua para a rota
-    return next();
-  }
-
-  // Importante: não envie resposta ao OPTIONS antes da verificação da origem
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
