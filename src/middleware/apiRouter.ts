@@ -24,7 +24,7 @@ const api = nextConnect<VercelRequest, VercelResponse>({
 });
 
 // 🧠 Usa body-parser com limite maior (10mb)
-api.use(json({ limit: "20mb" }));
+// api.use(json({ limit: "20mb" }));
 
 // 🌐 Middleware CORS
 api.use((req, res, next) => {
