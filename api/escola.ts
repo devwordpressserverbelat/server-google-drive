@@ -1,46 +1,59 @@
 import multer from "multer";
 import fs from "fs-extra";
 import path from "path";
+import Utils from "../src/utils/utils";
 import api from "../src/middleware/apiRouter";
 
-const upload = multer({
-  dest: "/tmp/",
-  limits: { fileSize: 20 * 1024 * 1024 },
-});
+const upload = multer({ dest: "/tmp/" });
 
-const uploadFields = upload.fields([
-  { name: "balanco_dre", maxCount: 3 },
-  { name: "balance_ano_corrente", maxCount: 1 },
-  { name: "relacao_mensal_faturamento_three_anos", maxCount: 1 },
-]);
+const apiEscola = api;
 
-const handler = api;
-handler.use(uploadFields);
+const uploadFields = upload.fields([{ name: "balanco_dre", maxCount: 3 }]);
 
-handler.post(async (req: any, res) => {
+apiEscola.use(uploadFields);
+
+apiEscola.post(async (req: any, res) => {
   try {
     const arquivos = req.files as {
       [fieldname: string]: Express.Multer.File[];
     };
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: "E-mail obrigatório" });
+    const dados = req.body;
 
-    const tempFolder = `/tmp/${email}`;
-    await fs.ensureDir(tempFolder);
+    if (!dados)
+      return res.json({ error: "Não recebemos os dados corretamente" });
 
-    for (const files of Object.values(arquivos)) {
-      for (const file of files) {
-        const dest = path.join(tempFolder, file.originalname);
-        await fs.copy(file.path, dest);
-        await fs.remove(file.path);
+    for (const key in dados) {
+      if (Object.prototype.hasOwnProperty.call(dados, key)) {
+        if (dados[key] === "on") {
+          dados[key] = "Sim";
+        } else if (dados[key] === undefined || dados[key] === "") {
+          dados[key] = "Não";
+        }
       }
     }
 
-    return res.status(200).json({ success: true, step: "1/3 concluído" });
+    const emailFolder = path.join("/tmp", dados.email || "sem-email");
+    await fs.ensureDir(emailFolder);
+
+    // Salvar arquivos recebidos na pasta do e-mail
+    const arquivosArray = Object.values(arquivos).flat();
+    for (const file of arquivosArray) {
+      const destPath = path.join(emailFolder, file.originalname);
+      await fs.move(file.path, destPath, { overwrite: true });
+    }
+    // Gerar PDF e salvar na pasta do e-mail
+    const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
+    await Utils.generatePDF(dados, pdfPath);
+
+    res
+      .status(200)
+      .json({ success: true, message: "parte 1 recebida com sucesso" });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro no Step 1" });
+    res
+      .status(500)
+      .json({ success: false, message: "Erro ao processar dados." });
   }
 });
 
-export default handler;
+export default apiEscola;
