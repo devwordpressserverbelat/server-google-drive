@@ -5,7 +5,12 @@ import Utils from "../src/utils/utils";
 import DriveController from "../src/controllers/DriveController";
 import api from "../src/middleware/apiRouter";
 
-const upload = multer({ dest: "/tmp/" });
+const upload = multer({
+  dest: "/tmp/",
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB por arquivo
+  },
+});
 
 const apiEscola = api;
 
