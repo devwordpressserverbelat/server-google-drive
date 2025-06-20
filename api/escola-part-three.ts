@@ -7,12 +7,9 @@ import api from "../src/middleware/apiRouter";
 
 const upload = multer({
   dest: "/tmp/",
-  limits: {
-    fileSize: 20 * 1024 * 1024, // 20MB por arquivo
-  },
 });
 
-const apiEscola = api;
+const apiEscolaPartThree = api;
 
 const uploadFields = upload.fields([
   { name: "declaracao_irpf", maxCount: 1 },
@@ -20,55 +17,65 @@ const uploadFields = upload.fields([
   { name: "informacoes_mercado", maxCount: 1 },
 ]);
 
-apiEscola.use(uploadFields);
+apiEscolaPartThree.use(uploadFields);
 
-apiEscola.post(async (req: any, res) => {
+apiEscolaPartThree.post(async (req: any, res) => {
   try {
     const arquivos = req.files as {
       [fieldname: string]: Express.Multer.File[];
     };
     const dados = req.body;
 
-    if (!dados)
-      return res.json({ error: "Não recebemos os dados corretamente" });
+    if (!dados?.email) {
+      return res.status(400).json({ error: "E-mail é obrigatório" });
+    }
 
-    for (const key in dados) {
-      if (Object.prototype.hasOwnProperty.call(dados, key)) {
-        if (dados[key] === "on") {
-          dados[key] = "Sim";
-        } else if (dados[key] === undefined || dados[key] === "") {
-          dados[key] = "Não";
-        }
+    const emailFolder = path.join("/tmp", dados.email);
+    await fs.ensureDir(emailFolder);
+
+    // Move os arquivos recebidos para a pasta do e-mail
+    const arquivosArray: Express.Multer.File[] = [];
+    for (const files of Object.values(arquivos)) {
+      for (const file of files) {
+        const dest = path.join(emailFolder, file.originalname);
+        await fs.move(file.path, dest);
+        arquivosArray.push({ ...file, path: dest });
       }
     }
 
-    const tempFolder = "/tmp";
-    await fs.ensureDir(tempFolder);
-
-    const date = Utils.getToDay();
-    const pdfPath = path.join(tempFolder, "dadosformulario.pdf");
-    const zipPath = path.join(tempFolder, `${dados?.email ?? ""}-${date}.zip`);
-
-    const arquivosArray = Object.values(arquivos).flat();
-
+    // Se houver assinatura, salva na pasta também
     if (dados.signature && typeof dados.signature === "string") {
       const signatureFile = await Utils.convertBase64(
         dados.signature,
-        tempFolder,
+        emailFolder,
         "signature"
       );
       arquivosArray.push(signatureFile);
       delete dados.signature;
     }
 
-    await Utils.generatePDF(dados, pdfPath);
+    // Verifica se o PDF já existe na pasta
+    const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
+    const pdfExists = await fs.pathExists(pdfPath);
+    if (!pdfExists) {
+      return res
+        .status(400)
+        .json({ error: "O PDF não foi encontrado na pasta do e-mail." });
+    }
+
+    // Cria o ZIP contendo o PDF existente + arquivos novos
+    const date = Utils.getToDay();
+    const zipPath = path.join(emailFolder, `${dados.email}-${date}.zip`);
     await Utils.createZip(pdfPath, arquivosArray, zipPath);
 
+    // Envia o zip ao Google Drive
     const driveLink = await DriveController.uploadToDrive(zipPath);
 
-    await fs.remove(pdfPath);
+    // Limpeza: remove arquivos enviados e o ZIP (mas mantém o PDF existente)
     await fs.remove(zipPath);
-    for (const file of arquivosArray) await fs.remove(file.path);
+    for (const file of arquivosArray) {
+      await fs.remove(file.path);
+    }
 
     res.status(200).json({ success: true, link: driveLink });
   } catch (err) {
@@ -79,4 +86,4 @@ apiEscola.post(async (req: any, res) => {
   }
 });
 
-export default apiEscola;
+export default apiEscolaPartThree;

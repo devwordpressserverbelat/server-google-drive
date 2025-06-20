@@ -6,13 +6,13 @@ import api from "../src/middleware/apiRouter";
 
 const upload = multer({ dest: "/tmp/" });
 
-const apiEscola = api;
+const apiEscolaPartOne = api;
 
 const uploadFields = upload.fields([{ name: "balanco_dre", maxCount: 3 }]);
 
-apiEscola.use(uploadFields);
+apiEscolaPartOne.use(uploadFields);
 
-apiEscola.post(async (req: any, res) => {
+apiEscolaPartOne.post(async (req: any, res) => {
   try {
     const arquivos = req.files as {
       [fieldname: string]: Express.Multer.File[];
@@ -56,4 +56,4 @@ apiEscola.post(async (req: any, res) => {
   }
 });
 
-export default apiEscola;
+export default apiEscolaPartOne;
