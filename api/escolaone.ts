@@ -9,9 +9,9 @@ const upload = multer({
 });
 
 const uploadFields = upload.fields([
-  { name: "balanco_dre", maxCount: 3 },
-  { name: "balance_ano_corrente", maxCount: 1 },
-  { name: "relacao_mensal_faturamento_three_anos", maxCount: 1 },
+  { name: "valor_mensal_vendas_tres_anos", maxCount: 1 },
+  { name: "declaracao_irpf", maxCount: 1 },
+  { name: "previsao_fluxo_caixa", maxCount: 1 },
 ]);
 
 const handler = api;
@@ -36,10 +36,10 @@ handler.post(async (req: any, res) => {
       }
     }
 
-    return res.status(200).json({ success: true, step: "1/3 concluído" });
+    return res.status(200).json({ success: true, step: "2/3 concluído" });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro no Step 1" });
+    return res.status(500).json({ error: "Erro no Step 2" });
   }
 });
 
