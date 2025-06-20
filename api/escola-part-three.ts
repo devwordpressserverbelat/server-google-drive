@@ -35,10 +35,11 @@ apiEscolaPartThree.post(async (req: any, res) => {
 
     // Move os arquivos recebidos para a pasta do e-mail
     const arquivosArray: Express.Multer.File[] = [];
+    // Move os arquivos recebidos para a pasta do e-mail (sobrescrevendo se já existir)
     for (const files of Object.values(arquivos)) {
       for (const file of files) {
         const dest = path.join(emailFolder, file.originalname);
-        await fs.move(file.path, dest);
+        await fs.move(file.path, dest, { overwrite: true }); // <- aqui
         arquivosArray.push({ ...file, path: dest });
       }
     }
