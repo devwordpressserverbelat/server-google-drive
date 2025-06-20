@@ -32,7 +32,7 @@ apiEscolaPartOne.post(async (req: any, res) => {
       }
     }
 
-    const emailFolder = path.join("/tmp", dados.email || "sem-email");
+    const emailFolder = path.join("/tmp", dados.email);
     await fs.ensureDir(emailFolder);
 
     // Salvar arquivos recebidos na pasta do e-mail
