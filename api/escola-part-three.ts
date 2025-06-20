@@ -30,6 +30,9 @@ apiEscolaPartThree.post(async (req: any, res) => {
       return res.status(400).json({ error: "E-mail é obrigatório" });
     }
 
+    console.log("req.body:", req.body);
+    console.log("req.files:", req.files);
+
     const emailFolder = path.join("/tmp", dados.email);
     await fs.ensureDir(emailFolder);
 
