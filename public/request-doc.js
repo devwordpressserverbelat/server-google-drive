@@ -58,7 +58,7 @@ async function sendData(event) {
 
   // Exemplo de envio com fetch
   const response = await fetch(
-    "https://server-google-drive.vercel.app//api/escola",
+    "https://server-google-drive.vercel.app/api/escola",
     {
       method: "POST",
       body: sendDataOne,
@@ -66,7 +66,7 @@ async function sendData(event) {
   );
 
   const response1 = await fetch(
-    "https://server-google-drive.vercel.app//api/escola-part-two",
+    "https://server-google-drive.vercel.app/api/escola-part-two",
     {
       method: "POST",
       body: sendDataTwo,
@@ -74,7 +74,7 @@ async function sendData(event) {
   );
 
   const response2 = await fetch(
-    "https://server-google-drive.vercel.app//api/escola-part-three",
+    "https://server-google-drive.vercel.app/api/escola-part-three",
     {
       method: "POST",
       body: sendDataThree,
