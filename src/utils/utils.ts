@@ -59,6 +59,27 @@ export default class Utils {
     });
   }
 
+  static async createZipDoc(
+    files: { path: string; originalname: string }[],
+    zipPath: string
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const output = fs.createWriteStream(zipPath);
+      const archive = archiver("zip", { zlib: { level: 9 } });
+
+      output.on("close", resolve);
+      archive.on("error", reject);
+
+      archive.pipe(output);
+
+      files.forEach((file) => {
+        archive.file(file.path, { name: file.originalname });
+      });
+
+      archive.finalize();
+    });
+  }
+
   static async convertBase64(
     base64: string,
     destFolder: string,

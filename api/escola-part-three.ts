@@ -27,59 +27,47 @@ apiEscolaPartThree.post(async (req: any, res) => {
     const dados = req.body;
 
     if (!dados?.email) {
-      return res.status(400).json({ error: "E-mail é obrigatório" });
+      res.status(400).json({ error: "E-mail é obrigatório" });
+      return;
     }
-
-    console.log("req.body:", req.body);
-    console.log("req.files:", req.files);
 
     const emailFolder = path.join("/tmp", dados.email);
     await fs.ensureDir(emailFolder);
 
-    // Move os arquivos recebidos para a pasta do e-mail
-    const arquivosArray: Express.Multer.File[] = [];
-    // Move os arquivos recebidos para a pasta do e-mail (sobrescrevendo se já existir)
-    for (const files of Object.values(arquivos)) {
-      for (const file of files) {
-        const dest = path.join(emailFolder, file.originalname);
-        await fs.move(file.path, dest, { overwrite: true }); // <- aqui
-        arquivosArray.push({ ...file, path: dest });
-      }
+    // Move arquivos recebidos nesta etapa
+    const arquivosArray = Object.values(arquivos).flat();
+    for (const file of arquivosArray) {
+      const destPath = path.join(emailFolder, file.originalname);
+      await fs.move(file.path, destPath, { overwrite: true });
     }
 
-    // Se houver assinatura, salva na pasta também
-    if (dados.signature && typeof dados.signature === "string") {
-      const signatureFile = await Utils.convertBase64(
-        dados.signature,
-        emailFolder,
-        "signature"
-      );
-      arquivosArray.push(signatureFile);
-      delete dados.signature;
-    }
-
-    // Verifica se o PDF já existe na pasta
+    // Verifica se o PDF existe
     const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
     const pdfExists = await fs.pathExists(pdfPath);
     if (!pdfExists) {
-      return res
-        .status(400)
-        .json({ error: "O PDF não foi encontrado na pasta do e-mail." });
+      res.status(400).json({ error: "O PDF não foi encontrado na pasta." });
+      return;
     }
 
-    // Cria o ZIP contendo o PDF existente + arquivos novos
+    // ✅ Lista todos os arquivos da pasta
+    const arquivosNaPasta = await fs.readdir(emailFolder);
+    const arquivosParaZip = arquivosNaPasta.map((nome) => ({
+      originalname: nome,
+      path: path.join(emailFolder, nome),
+    }));
+
+    // Cria o ZIP
     const date = Utils.getToDay();
     const zipPath = path.join(emailFolder, `${dados.email}-${date}.zip`);
-    await Utils.createZip(pdfPath, arquivosArray, zipPath);
 
-    // Envia o zip ao Google Drive
+    await Utils.createZipDoc(arquivosParaZip, zipPath);
+
+    // Envia para o Drive
     const driveLink = await DriveController.uploadToDrive(zipPath);
-
-    // Limpeza: remove arquivos enviados e o ZIP (mas mantém o PDF existente)
+    console.log("asd");
+    // Limpeza
+    await fs.remove(emailFolder);
     await fs.remove(zipPath);
-    for (const file of arquivosArray) {
-      await fs.remove(file.path);
-    }
 
     res.status(200).json({ success: true, link: driveLink });
   } catch (err) {

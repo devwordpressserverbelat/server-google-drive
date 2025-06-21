@@ -22,26 +22,26 @@ handler.post(async (req: any, res) => {
     const arquivos = req.files as {
       [fieldname: string]: Express.Multer.File[];
     };
-    const { email } = req.body;
+    const dados = req.body;
 
-    if (!email) return res.status(400).json({ error: "E-mail obrigatório" });
-
-    const tempFolder = `/tmp/${email}`;
-    await fs.ensureDir(tempFolder);
-
-    // Salvar somente os arquivos na pasta do e-mail
-    for (const files of Object.values(arquivos)) {
-      for (const file of files) {
-        const dest = path.join(tempFolder, file.originalname);
-        await fs.copy(file.path, dest);
-        await fs.remove(file.path);
-      }
+    if (!dados?.email) {
+      res.status(400).json({ error: "E-mail obrigatório" });
+      return;
     }
 
-    return res.status(200).json({ success: true, step: "2/3 concluído" });
+    const emailFolder = path.join("/tmp", dados.email);
+    await fs.ensureDir(emailFolder);
+
+    const arquivosArray = Object.values(arquivos).flat();
+    for (const file of arquivosArray) {
+      const destPath = path.join(emailFolder, file.originalname);
+      await fs.move(file.path, destPath, { overwrite: true });
+    }
+
+    res.status(200).json({ success: true, step: "2/3 concluído" });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro no Step 2" });
+    res.status(500).json({ error: "Erro no Step 2" });
   }
 });
 
