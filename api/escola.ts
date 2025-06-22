@@ -29,7 +29,10 @@ apiEscolaPartOne.post(async (req: any, res) => {
 
     const arquivosArray = Object.values(arquivos).flat();
     for (const file of arquivosArray) {
-      const destPath = path.join(emailFolder, file.originalname);
+      const destPath = path.join(
+        emailFolder,
+        Utils.formatNameFile(file.fieldname, file.originalname)
+      );
       await fs.move(file.path, destPath, { overwrite: true });
     }
 

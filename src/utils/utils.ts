@@ -126,4 +126,10 @@ export default class Utils {
 
     return dataFormatada;
   }
+
+  static formatNameFile(fieldName: string, originalname: string) {
+    const nome = fieldName.replace(/_/g, "-");
+    const nomeCapitalizado = nome.charAt(0).toUpperCase() + nome.slice(1);
+    return nomeCapitalizado + originalname.slice(originalname.lastIndexOf("."));
+  }
 }
