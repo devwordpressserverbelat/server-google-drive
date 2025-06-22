@@ -37,23 +37,17 @@ apiEnviar.post(async (req: any, res) => {
       }
     }
 
-    const tempFolder = "/tmp";
-    await fs.ensureDir(tempFolder);
+    const emailFolder = path.join("/tmp", dados.email);
+    await fs.ensureDir(emailFolder);
 
-    const date = Utils.getToDay();
-
-    const pdfPath = path.join(tempFolder, "dadosformulario.pdf");
-    const zipPath = path.join(
-      tempFolder,
-      `${dados?.nome ?? ""}-${dados?.sobrenome ?? ""}-${date}.zip`
-    );
+    const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
 
     const arquivosArray = Object.values(arquivos).flat();
 
     if (dados.signature && typeof dados.signature === "string") {
       const signatureFile = await Utils.convertBase64(
         dados.signature,
-        tempFolder,
+        emailFolder,
         "signature"
       );
       arquivosArray.push(signatureFile);
@@ -61,15 +55,29 @@ apiEnviar.post(async (req: any, res) => {
     }
 
     await Utils.generatePDF(dados, pdfPath);
-    await Utils.createZip(pdfPath, arquivosArray, zipPath);
 
-    const driveLink = await DriveController.uploadToDrive(zipPath);
+    const folderName = `${dados.email}`;
+
+    let folderId: string | null;
+
+    folderId = await DriveController.findFolderIdByName(folderName);
+
+    if (!folderId) folderId = await DriveController.createFolder(folderName);
+
+    for (const file of arquivosArray) {
+      const destPath = path.join(
+        emailFolder,
+        Utils.formatNameFile(file.fieldname, file.originalname)
+      );
+      await fs.move(file.path, destPath, { overwrite: true });
+
+      await DriveController.uploadToFolder(destPath, folderId);
+    }
 
     await fs.remove(pdfPath);
-    await fs.remove(zipPath);
     for (const file of arquivosArray) await fs.remove(file.path);
 
-    res.status(200).json({ success: true, link: driveLink });
+    res.status(200).json({ success: true, folderId: folderId });
   } catch (err) {
     console.error(err);
     res

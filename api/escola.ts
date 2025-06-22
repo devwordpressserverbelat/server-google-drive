@@ -26,7 +26,12 @@ apiEscolaPartOne.post(async (req: any, res) => {
     }
 
     const folderName = `${dados.email}`;
-    const folderId = await DriveController.createFolder(folderName);
+
+    let folderId: string | null;
+
+    folderId = await DriveController.findFolderIdByName(dados.email);
+
+    if (!folderId) folderId = await DriveController.createFolder(folderName);
 
     const emailFolder = path.join("/tmp", dados.email);
     await fs.ensureDir(emailFolder);
@@ -44,7 +49,6 @@ apiEscolaPartOne.post(async (req: any, res) => {
 
     const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
     await Utils.generatePDF(dados, pdfPath);
-
     await DriveController.uploadToFolder(pdfPath, folderId);
 
     await fs.remove(emailFolder);

@@ -34,25 +34,24 @@ apiEscolaPartThree.post(async (req: any, res) => {
       return;
     }
 
-    const folderId = await DriveController.findFolderIdByName(dados.email);
+    const folderName = `${dados.email}`;
+    let folderId: string | null;
 
-    if (!folderId) {
-      res.status(404).json({
-        error: "Pasta no Google Drive não encontrada para este e-mail",
-      });
-      return;
-    }
+    folderId = await DriveController.findFolderIdByName(dados.email);
+
+    if (!folderId) folderId = await DriveController.createFolder(folderName);
 
     const emailFolder = path.join("/tmp", dados.email);
     await fs.ensureDir(emailFolder);
 
-    for (const file of arquivos) {
+    const arquivosArray = Object.values(arquivos).flat();
+    for (const file of arquivosArray) {
       const destPath = path.join(
         emailFolder,
         Utils.formatNameFile(file.fieldname, file.originalname)
       );
-
       await fs.move(file.path, destPath, { overwrite: true });
+
       await DriveController.uploadToFolder(destPath, folderId);
     }
 
