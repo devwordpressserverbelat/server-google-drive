@@ -2,7 +2,6 @@ import multer from "multer";
 import fs from "fs-extra";
 import path from "path";
 import Utils from "../src/utils/utils";
-import DriveController from "../src/controllers/DriveController";
 import api from "../src/middleware/apiRouter";
 
 const upload = multer({
@@ -41,7 +40,7 @@ apiEscolaPartThree.post(async (req: any, res) => {
         emailFolder,
         Utils.formatNameFile(file.fieldname, file.originalname)
       );
-      await fs.move(file.path, destPath, { overwrite: true });
+      await fs.move(file.path, destPath, { dereference: true });
     }
 
     // ✅ Lista todos os arquivos da pasta

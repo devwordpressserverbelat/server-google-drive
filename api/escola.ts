@@ -33,7 +33,7 @@ apiEscolaPartOne.post(async (req: any, res) => {
         emailFolder,
         Utils.formatNameFile(file.fieldname, file.originalname)
       );
-      await fs.move(file.path, destPath, { overwrite: true });
+      await fs.move(file.path, destPath, { dereference: true });
     }
 
     const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
