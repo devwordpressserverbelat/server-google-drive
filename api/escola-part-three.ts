@@ -3,6 +3,7 @@ import fs from "fs-extra";
 import path from "path";
 import Utils from "../src/utils/utils";
 import api from "../src/middleware/apiRouter";
+import DriveController from "../src/controllers/DriveController";
 
 const upload = multer({
   dest: "/tmp/",
@@ -20,9 +21,12 @@ apiEscolaPartThree.use(uploadFields);
 
 apiEscolaPartThree.post(async (req: any, res) => {
   try {
-    const arquivos = req.files as {
+    const arquivosObj = req.files as {
       [fieldname: string]: Express.Multer.File[];
     };
+
+    const arquivos: Express.Multer.File[] = Object.values(arquivosObj).flat();
+
     const dados = req.body;
 
     if (!dados?.email) {
@@ -30,70 +34,38 @@ apiEscolaPartThree.post(async (req: any, res) => {
       return;
     }
 
+    const folderId = await DriveController.findFolderIdByName(dados.email);
+
+    if (!folderId) {
+      res.status(404).json({
+        error: "Pasta no Google Drive não encontrada para este e-mail",
+      });
+      return;
+    }
+
     const emailFolder = path.join("/tmp", dados.email);
     await fs.ensureDir(emailFolder);
 
-    // Move arquivos recebidos nesta etapa
-    const arquivosArray = Object.values(arquivos).flat();
-    for (const file of arquivosArray) {
+    for (const file of arquivos) {
       const destPath = path.join(
         emailFolder,
         Utils.formatNameFile(file.fieldname, file.originalname)
       );
-      await fs.move(file.path, destPath, { dereference: true });
+
+      await fs.move(file.path, destPath, { overwrite: true });
+      await DriveController.uploadToFolder(destPath, folderId);
     }
 
-    // ✅ Lista todos os arquivos da pasta
-    const arquivosNaPasta = await fs.readdir(emailFolder);
-    const arquivosParaZip = arquivosNaPasta.map((nome) => ({
-      originalname: nome,
-      path: path.join(emailFolder, nome),
-    }));
-
-    // Cria o ZIP
-    const date = Utils.getToDay();
-    const zipPath = path.join(emailFolder, `${dados.email}-${date}.zip`);
-
-    await Utils.createZipDoc(arquivosParaZip, zipPath);
-
-    // LOG
-
-    const tmpPath = "/tmp";
-
-    const files = await fs.readdir(tmpPath);
-
-    console.log("📁 Conteúdo da pasta /tmp:");
-
-    for (const file of files) {
-      const filePath = path.join(tmpPath, file);
-      const stat = await fs.stat(filePath);
-
-      if (stat.isDirectory()) {
-        const innerFiles = await fs.readdir(filePath);
-        console.log(`📂 Pasta: ${file}`);
-        innerFiles.forEach((f) => {
-          console.log(`   └── ${f}`);
-        });
-      } else {
-        console.log(`📄 Arquivo: ${file}`);
-      }
-    }
-
-    // LOG
-
-    // Envia para o Drive
-    // const driveLink = await DriveController.uploadToDrive(zipPath);
-    console.log("asd");
-    // Limpeza
     await fs.remove(emailFolder);
-    await fs.remove(zipPath);
 
-    res.status(200).json({ success: true, link: "driveLink" });
+    res.status(200).json({
+      success: true,
+      step: "2/3 concluído",
+      folderId,
+    });
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({ success: false, message: "Erro ao processar dados." });
+    res.status(500).json({ error: "Erro no Step 2" });
   }
 });
 
