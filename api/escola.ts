@@ -39,6 +39,31 @@ apiEscolaPartOne.post(async (req: any, res) => {
     const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
     await Utils.generatePDF(dados, pdfPath);
 
+    // LOG
+
+    const tmpPath = "/tmp";
+
+    const files = await fs.readdir(tmpPath);
+
+    console.log("📁 Conteúdo da pasta /tmp:");
+
+    for (const file of files) {
+      const filePath = path.join(tmpPath, file);
+      const stat = await fs.stat(filePath);
+
+      if (stat.isDirectory()) {
+        const innerFiles = await fs.readdir(filePath);
+        console.log(`📂 Pasta: ${file}`);
+        innerFiles.forEach((f) => {
+          console.log(`   └── ${f}`);
+        });
+      } else {
+        console.log(`📄 Arquivo: ${file}`);
+      }
+    }
+
+    // LOG
+
     res
       .status(200)
       .json({ success: true, message: "Parte 1 recebida com sucesso" });

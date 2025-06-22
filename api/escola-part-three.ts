@@ -57,14 +57,39 @@ apiEscolaPartThree.post(async (req: any, res) => {
 
     await Utils.createZipDoc(arquivosParaZip, zipPath);
 
+    // LOG
+
+    const tmpPath = "/tmp";
+
+    const files = await fs.readdir(tmpPath);
+
+    console.log("📁 Conteúdo da pasta /tmp:");
+
+    for (const file of files) {
+      const filePath = path.join(tmpPath, file);
+      const stat = await fs.stat(filePath);
+
+      if (stat.isDirectory()) {
+        const innerFiles = await fs.readdir(filePath);
+        console.log(`📂 Pasta: ${file}`);
+        innerFiles.forEach((f) => {
+          console.log(`   └── ${f}`);
+        });
+      } else {
+        console.log(`📄 Arquivo: ${file}`);
+      }
+    }
+
+    // LOG
+
     // Envia para o Drive
-    const driveLink = await DriveController.uploadToDrive(zipPath);
+    // const driveLink = await DriveController.uploadToDrive(zipPath);
     console.log("asd");
     // Limpeza
     await fs.remove(emailFolder);
     await fs.remove(zipPath);
 
-    res.status(200).json({ success: true, link: driveLink });
+    res.status(200).json({ success: true, link: "driveLink" });
   } catch (err) {
     console.error(err);
     res

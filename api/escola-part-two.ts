@@ -42,6 +42,31 @@ handler.post(async (req: any, res) => {
       await fs.move(file.path, destPath, { overwrite: true });
     }
 
+    // LOG
+
+    const tmpPath = "/tmp";
+
+    const files = await fs.readdir(tmpPath);
+
+    console.log("📁 Conteúdo da pasta /tmp:");
+
+    for (const file of files) {
+      const filePath = path.join(tmpPath, file);
+      const stat = await fs.stat(filePath);
+
+      if (stat.isDirectory()) {
+        const innerFiles = await fs.readdir(filePath);
+        console.log(`📂 Pasta: ${file}`);
+        innerFiles.forEach((f) => {
+          console.log(`   └── ${f}`);
+        });
+      } else {
+        console.log(`📄 Arquivo: ${file}`);
+      }
+    }
+
+    // LOG
+
     res.status(200).json({ success: true, step: "2/3 concluído" });
   } catch (err) {
     console.error(err);
