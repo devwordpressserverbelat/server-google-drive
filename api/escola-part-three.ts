@@ -44,14 +44,6 @@ apiEscolaPartThree.post(async (req: any, res) => {
       await fs.move(file.path, destPath, { overwrite: true });
     }
 
-    // Verifica se o PDF existe
-    const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
-    const pdfExists = await fs.pathExists(pdfPath);
-    if (!pdfExists) {
-      res.status(400).json({ error: "O PDF não foi encontrado na pasta." });
-      return;
-    }
-
     // ✅ Lista todos os arquivos da pasta
     const arquivosNaPasta = await fs.readdir(emailFolder);
     const arquivosParaZip = arquivosNaPasta.map((nome) => ({
