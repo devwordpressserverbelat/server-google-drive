@@ -10,6 +10,7 @@ const upload = multer({ dest: "/tmp/" });
 const apiSchool = api;
 
 const uploadFields = upload.fields([
+  { name: "previsao_fluxo_caixa", maxCount: 1 },
   { name: "informacoes_mercado", maxCount: 1 },
   { name: "relacao_alunos_professores", maxCount: 1 },
   { name: "plano_pedagogico", maxCount: 1 },
@@ -29,7 +30,7 @@ apiSchool.post(async (req: any, res) => {
       return;
     }
 
-    const folderName = `${dados.email}`;
+    const folderName = `${dados.email}-escola`;
 
     let folderId: string | null;
 
