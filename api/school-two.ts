@@ -51,10 +51,6 @@ apiSchool.post(async (req: any, res) => {
       await DriveController.uploadToFolder(destPath, folderId);
     }
 
-    const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
-    await Utils.generatePDF(dados, pdfPath);
-    await DriveController.uploadToFolder(pdfPath, folderId);
-
     await fs.remove(emailFolder);
 
     res.status(200).json({
