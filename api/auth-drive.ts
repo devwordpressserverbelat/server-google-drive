@@ -45,38 +45,7 @@ authDrive.post(async (req: any, res) => {
     output: process.stdout,
   });
 
-  const code = await rl.question(
-    '2. Cole aqui o "code" da URL de redirecionamento e pressione ENTER: '
-  );
-  rl.close();
-
-  try {
-    // Troca o código de autorização pelos tokens.
-    // A resposta é tipada para garantir que 'tokens' contenha as credenciais.
-    const { tokens }: { tokens: Auth.Credentials } =
-      await oauth2Client.getToken(code);
-
-    console.log("\n---------------------------------\n");
-    console.log("SUCESSO! Seus tokens são:");
-
-    if (tokens.refresh_token) {
-      console.log("!!!!!! GUARDE ESTE REFRESH TOKEN COM SEGURANÇA !!!!!!");
-      console.log("Refresh Token:", tokens.refresh_token);
-      console.log("\nAgora, copie o Refresh Token e cole no seu arquivo .env");
-    } else {
-      console.warn(
-        "ATENÇÃO: Nenhum Refresh Token foi retornado. Se precisar de um, revogue o acesso do app na sua conta Google e tente novamente."
-      );
-    }
-
-    console.log("Access Token:", tokens.access_token);
-    console.log("\n---------------------------------\n");
-  } catch (err: any) {
-    console.error(
-      "Erro ao obter os tokens:",
-      err.response?.data || err.message
-    );
-  }
+  return res.json(authUrl);
 });
 
 export default authDrive;
