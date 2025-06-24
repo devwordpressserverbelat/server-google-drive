@@ -37,7 +37,7 @@ apiEnviar.post(async (req: any, res) => {
       }
     }
 
-    const emailFolder = path.join("/tmp", dados.email);
+    const emailFolder = path.join("/tmp", dados.email_do_cliente);
     await fs.ensureDir(emailFolder);
 
     const pdfPath = path.join(emailFolder, "dadosformulario.pdf");
