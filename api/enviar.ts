@@ -56,7 +56,7 @@ apiEnviar.post(async (req: any, res) => {
 
     await Utils.generatePDF(dados, pdfPath);
 
-    const folderName = `${dados.email}-Solicitacao-Credito`;
+    const folderName = `${dados.email_do_cliente}-Solicitacao-Credito`;
 
     let folderId: string | null;
 
