@@ -29,7 +29,7 @@ apiEscolaPartOne.post(async (req: any, res) => {
 
     let folderId: string | null;
 
-    folderId = await DriveController.findFolderIdByName(dados.email);
+    folderId = await DriveController.findFolderIdByName(folderName);
 
     if (!folderId) folderId = await DriveController.createFolder(folderName);
 

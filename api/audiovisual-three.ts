@@ -30,7 +30,7 @@ apiSchool.post(async (req: any, res) => {
       return;
     }
 
-    const folderName = `${dados.email}-audiovisual`;
+    const folderName = `${dados.email}-Audiovisual`;
 
     let folderId: string | null;
 

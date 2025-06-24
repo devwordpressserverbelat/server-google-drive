@@ -29,7 +29,7 @@ apiSchool.post(async (req: any, res) => {
       return;
     }
 
-    const folderName = `${dados.email}-escola`;
+    const folderName = `${dados.email}-Escola`;
 
     let folderId: string | null;
 

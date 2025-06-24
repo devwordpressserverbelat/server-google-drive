@@ -37,7 +37,7 @@ handler.post(async (req: any, res) => {
     const folderName = `${dados.email}-Geral`;
     let folderId: string | null;
 
-    folderId = await DriveController.findFolderIdByName(dados.email);
+    folderId = await DriveController.findFolderIdByName(folderName);
 
     if (!folderId) folderId = await DriveController.createFolder(folderName);
 
