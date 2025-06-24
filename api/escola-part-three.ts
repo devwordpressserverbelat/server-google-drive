@@ -34,7 +34,7 @@ apiEscolaPartThree.post(async (req: any, res) => {
       return;
     }
 
-    const folderName = `${dados.email}`;
+    const folderName = `${dados.email}-Geral`;
     let folderId: string | null;
 
     folderId = await DriveController.findFolderIdByName(dados.email);
